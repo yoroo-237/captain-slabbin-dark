@@ -15,6 +15,28 @@ http {
     # Ecoute uniquement en local : Tor est le seul point d'entree.
     listen 127.0.0.1:8080;
 
+    # robots.txt et sitemap.xml : repris du site clearnet, avec les URLs
+    # reecrites vers l'adresse onion (Sitemap: et <loc>) pour les moteurs onion.
+    location ~ ^/(robots\.txt|sitemap\.xml)$ {
+      set $upstream "https://${UPSTREAM_HOST}";
+      proxy_pass $upstream;
+
+      proxy_ssl_server_name on;
+      proxy_ssl_name ${UPSTREAM_HOST};
+      proxy_set_header Host ${UPSTREAM_HOST};
+      proxy_set_header Accept-Encoding "";   # sub_filter exige une reponse non compressee
+      proxy_set_header X-Forwarded-For "";
+      proxy_set_header X-Real-IP "";
+      proxy_set_header Forwarded "";
+
+      sub_filter_types text/plain application/xml text/xml;
+      sub_filter_once off;
+      sub_filter 'https://${UPSTREAM_HOST}' 'http://$host';
+
+      proxy_connect_timeout 10s;
+      proxy_read_timeout 60s;
+    }
+
     location / {
       # Variable => nginx re-resout le DNS (utile si l'IP du site clearnet change).
       set $upstream "https://${UPSTREAM_HOST}";
