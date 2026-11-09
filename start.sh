@@ -10,7 +10,15 @@ fi
 UPSTREAM_HOST=$(echo "$UPSTREAM_HOST" | sed -e 's#^https\?://##' -e 's#/.*$##')
 export UPSTREAM_HOST
 
-envsubst '${UPSTREAM_HOST}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Domaine sans "www." : c'est l'origine que l'API autorise (FRONTEND_URL).
+ROOT_HOST="${UPSTREAM_HOST#www.}"
+export ROOT_HOST
+
+# Domaine de l'API : api.<domaine sans www> par defaut, modifiable via API_HOST.
+API_HOST=$(echo "${API_HOST:-api.$ROOT_HOST}" | sed -e 's#^https\?://##' -e 's#/.*$##')
+export API_HOST
+
+envsubst '${UPSTREAM_HOST} ${ROOT_HOST} ${API_HOST}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 nginx -t
 
 # Le volume Railway est monte en root : on donne la main a Tor sur ce dossier.
