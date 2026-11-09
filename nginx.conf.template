@@ -36,6 +36,10 @@ http {
       sub_filter 'https://www.${ROOT_HOST}' 'http://$host';
       sub_filter 'https://${ROOT_HOST}' 'http://$host';
 
+      # Sitemap : ajoute les sous-categories absentes du sitemap clearnet.
+      # (sans effet sur robots.txt, qui ne contient pas cette balise)
+      sub_filter '</urlset>' '<url><loc>http://$host/s/authentic-disposables</loc><changefreq>weekly</changefreq><priority>0.7</priority></url><url><loc>http://$host/s/replica-disposables</loc><changefreq>weekly</changefreq><priority>0.7</priority></url></urlset>';
+
       proxy_connect_timeout 10s;
       proxy_read_timeout 60s;
     }
